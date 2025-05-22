@@ -72,3 +72,29 @@ jobs:
         with:
           name: sysfoo-artifact
           path: target/*.jar
+
+  docker_bnp:
+    runs-on: ubuntu-latest
+    needs: package
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build and test Docker image
+        run: |
+          COMMIT_HASH=$(echo ${{ github.sha }} | cut -c1-7)
+          docker build -t docker.io/${{ vars.DOCKERHUB_USERNAME }}/sysfoo:$COMMIT_HASH -f Dockerfile .
+
+      - name: Log in to DockerHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Docker image to DockerHub
+        run: |
+          COMMIT_HASH=$(echo ${{ github.sha }} | cut -c1-7)
+          docker tag docker.io/${{ vars.DOCKERHUB_USERNAME }}/sysfoo:$COMMIT_HASH docker.io/${{ vars.DOCKERHUB_USERNAME }}/sysfoo:latest
+          docker push docker.io/${{ vars.DOCKERHUB_USERNAME }}/sysfoo:$COMMIT_HASH
+          docker push docker.io/${{ vars.DOCKERHUB_USERNAME }}/sysfoo:latest

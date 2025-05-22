@@ -49,3 +49,4 @@ jobs:
             sleep 4
           elif [ "${{ matrix.job }}" == "sbom" ]; then
             sleep 2
+          fi
